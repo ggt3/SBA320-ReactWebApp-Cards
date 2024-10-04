@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
+import EndGame from "./EndGame";
 
 const translation = [
   null,
@@ -17,22 +19,22 @@ const translation = [
   "JACK",
   "QUEEN",
   "KING",
-  "ACE"
+  "ACE",
 ];
 
 export default function NewGame() {
   const [computerDeckNum, setComputerDeckNum] = useState(26);
   const [myDeckNum, setMyDeckNum] = useState(26);
   const [numBattles, setNumBattles] = useState(0);
-  const [myCurr, setMyCurr] = useState(null);
+
   const [myImgURL, setMyImgURL] = useState(
     "https://www.deckofcardsapi.com/static/img/back.png"
   );
   const [compImgURL, setCompImgURL] = useState(
     "https://www.deckofcardsapi.com/static/img/back.png"
   );
-  const [compCurr, setCompCurr] = useState(null);
   const [DECK_ID, setDeckID] = useState("");
+  const [isGameOver, setIsGameOver] = useState(false);
 
   async function dealCards(player) {
     try {
@@ -48,10 +50,12 @@ export default function NewGame() {
         tempDeck.push(item.code);
       });
       let compCardString = tempDeck.join(",");
-
-      return await fetch(
+      
+     await fetch(
         `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
       );
+      await sleep(3000);
+      return;
     } catch (error) {
       console.error(error.message);
     }
@@ -74,16 +78,17 @@ export default function NewGame() {
       setCompImgURL(computerCard.image);
       setNumBattles(numBattles + 1);
       calculateWin(playerCard, computerCard);
-      //   console.log("computer", computerCard);
-      //   console.log("player", playerCard);
+      console.log("computer", computerCard);
+      console.log("player", playerCard);
     } catch (e) {
       console.log("handleclick is erroring at ", e.message);
     }
   }
 
   function calculateWin(playerCard, computerCard) {
-    if (myDeckNum||computerDeckNum ===27) {
-        return(<h1>YOU WIN THE WAR</h1>)
+    if (myDeckNum === 27 || computerDeckNum === 27) {
+      console.log("hit win condition");
+      setIsGameOver(true);
     }
     if (
       translation.indexOf(playerCard.value) >
@@ -94,10 +99,10 @@ export default function NewGame() {
           computerCard.value
         )} and yours was ${translation.indexOf(playerCard.value)}`
       );
-      
-      giveCards("player",[playerCard.code,computerCard.code])
-      setMyDeckNum(myDeckNum+1)
-      setComputerDeckNum(computerDeckNum-1)
+
+      giveCards("player", [playerCard.code, computerCard.code]);
+      setMyDeckNum(myDeckNum + 1);
+      setComputerDeckNum(computerDeckNum - 1);
     }
     if (
       translation.indexOf(playerCard.value) <
@@ -106,18 +111,23 @@ export default function NewGame() {
       console.log(
         `You lost. their card was ${translation.indexOf(
           computerCard.value
-        )} and yours was ${translation.indexOf(playerCard.value)}`  
+        )} and yours was ${translation.indexOf(playerCard.value)}`
       );
-      giveCards("computer",[playerCard.code,computerCard.code])
-      setMyDeckNum(myDeckNum-1)
-      setComputerDeckNum(computerDeckNum+1)
+      giveCards("computer", [playerCard.code, computerCard.code]);
+      setMyDeckNum(myDeckNum - 1);
+      setComputerDeckNum(computerDeckNum + 1);
     }
-
   }
   async function giveCards(player, cards) {
     let compCardString = cards.join(",");
-    console.log("giving cards ",compCardString)
-    return await fetch(`https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`)
+    console.log("giving cards ", compCardString);
+    return await fetch(
+      `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
+    );
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
   useEffect(() => {
     const fetchData = async () => {
@@ -141,16 +151,22 @@ export default function NewGame() {
 
   return (
     <div>
-      <Image src={compImgURL} />
-      <br />
-      Their number of cards: {computerDeckNum} <br />
-      <Button onClick={handleClick}>Battle! (Draw Card) </Button>
-      <br />
-      Total times battled: {numBattles}
-      <br />
-      Your number of cards: {myDeckNum}
-      <br />
-      <Image src={myImgURL} />
+      {isGameOver ? (
+        <EndGame />
+      ) : (
+        <div>
+          <Image src={compImgURL} />
+          <br />
+          Their number of cards: {computerDeckNum} <br />
+          <Button onClick={handleClick}>Battle! (Draw Card) </Button>
+          <br />
+          Total times battled: {numBattles}
+          <br />
+          Your number of cards: {myDeckNum}
+          <br />
+          <Image src={myImgURL} />
+        </div>
+      )}
     </div>
   );
 }

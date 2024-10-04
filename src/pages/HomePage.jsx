@@ -8,6 +8,10 @@ export default function HomePage() {
       <Link to="/newgame">
         <Button> Click For New Game</Button>
       </Link>
+      <br/>
+      <Link to="/howto">
+        <Button>How To Play</Button>
+      </Link>
     </div>
   );
 }
