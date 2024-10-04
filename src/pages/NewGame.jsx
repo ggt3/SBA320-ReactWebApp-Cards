@@ -4,7 +4,7 @@ import Image from "react-bootstrap/Image";
 
 const translation = [
   null,
-  "A",
+  null,
   "2",
   "3",
   "4",
@@ -17,11 +17,13 @@ const translation = [
   "JACK",
   "QUEEN",
   "KING",
+  "ACE"
 ];
 
 export default function NewGame() {
-  const [computerDeck, setComputerDeck] = useState([]);
-  const [myDeck, setMyDeck] = useState([]);
+  const [computerDeckNum, setComputerDeckNum] = useState(26);
+  const [myDeckNum, setMyDeckNum] = useState(26);
+  const [numBattles, setNumBattles] = useState(0);
   const [myCurr, setMyCurr] = useState(null);
   const [myImgURL, setMyImgURL] = useState(
     "https://www.deckofcardsapi.com/static/img/back.png"
@@ -34,40 +36,33 @@ export default function NewGame() {
 
   async function dealCards(player) {
     try {
-      console.log("deck id is ", DECK_ID);
+      console.log("deck id is ", DECK_ID, "for the ", player);
       const response = await fetch(
         `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=26`
       );
       const data = await response.json();
+      console.log(`${player} cards:`, data.cards);
       const cards = data.cards;
       const tempDeck = [];
       cards.map((item) => {
         tempDeck.push(item.code);
       });
-      if (player == "computer") {
-        setComputerDeck(tempDeck);
-      }
-      if (player == "player") {
-        setMyDeck(tempDeck);
-      }
       let compCardString = tempDeck.join(",");
 
-      const seedDeck = await fetch(
+      return await fetch(
         `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
       );
-
-      return;
     } catch (error) {
-      console.error(error);
+      console.error(error.message);
     }
   }
   async function handleClick() {
     try {
       const responsePlayer = await fetch(
-        `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/player/draw?count=1`
+        `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/player/draw/bottom/?count=1`
       );
       const responseComputer = await fetch(
-        `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/computer/draw?count=1`
+        `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/computer/draw/bottom/?count=1`
       );
 
       let [res1, res2] = await Promise.all([responsePlayer, responseComputer]);
@@ -77,14 +72,19 @@ export default function NewGame() {
       const computerDraw = await res2.json();
       const computerCard = computerDraw.cards[0];
       setCompImgURL(computerCard.image);
-      console.log("computer", computerCard);
-      console.log("player", playerCard);
+      setNumBattles(numBattles + 1);
+      calculateWin(playerCard, computerCard);
+      //   console.log("computer", computerCard);
+      //   console.log("player", playerCard);
     } catch (e) {
-      console.error("handleclick is erroring at ");
+      console.log("handleclick is erroring at ", e.message);
     }
   }
 
-  function calculateWin() {
+  function calculateWin(playerCard, computerCard) {
+    if (myDeckNum||computerDeckNum ===27) {
+        return(<h1>YOU WIN THE WAR</h1>)
+    }
     if (
       translation.indexOf(playerCard.value) >
       translation.indexOf(computerCard.value)
@@ -94,6 +94,10 @@ export default function NewGame() {
           computerCard.value
         )} and yours was ${translation.indexOf(playerCard.value)}`
       );
+      
+      giveCards("player",[playerCard.code,computerCard.code])
+      setMyDeckNum(myDeckNum+1)
+      setComputerDeckNum(computerDeckNum-1)
     }
     if (
       translation.indexOf(playerCard.value) <
@@ -102,9 +106,18 @@ export default function NewGame() {
       console.log(
         `You lost. their card was ${translation.indexOf(
           computerCard.value
-        )} and yours was ${translation.indexOf(playerCard.value)}`
+        )} and yours was ${translation.indexOf(playerCard.value)}`  
       );
+      giveCards("computer",[playerCard.code,computerCard.code])
+      setMyDeckNum(myDeckNum-1)
+      setComputerDeckNum(computerDeckNum+1)
     }
+
+  }
+  async function giveCards(player, cards) {
+    let compCardString = cards.join(",");
+    console.log("giving cards ",compCardString)
+    return await fetch(`https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`)
   }
   useEffect(() => {
     const fetchData = async () => {
@@ -130,10 +143,12 @@ export default function NewGame() {
     <div>
       <Image src={compImgURL} />
       <br />
-      Their number of cards: {computerDeck.length} <br />
+      Their number of cards: {computerDeckNum} <br />
       <Button onClick={handleClick}>Battle! (Draw Card) </Button>
       <br />
-      Your number of cards: {myDeck.length}
+      Total times battled: {numBattles}
+      <br />
+      Your number of cards: {myDeckNum}
       <br />
       <Image src={myImgURL} />
     </div>
