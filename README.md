@@ -1,7 +1,7 @@
 # SBA320-ReactWebApp-Cards
  war, the card game web app
 
-Netlify link:
+[Netlify link](https://cardwars-sba320.netlify.app/)
 
 A project created using the [Deck API](https://www.deckofcardsapi.com/). I thought it would be fun to make a card game to play on the web, though I fear I made something simple incredibly complicated, but I was in too deep.
 
