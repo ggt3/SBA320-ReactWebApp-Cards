@@ -50,10 +50,10 @@ export default function NewGame() {
         tempDeck.push(item.code);
       });
       let compCardString = tempDeck.join(",");
-     await fetch(
+      await fetch(
         `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
       );
-    
+
       return;
     } catch (error) {
       console.error(error.message);
@@ -85,7 +85,7 @@ export default function NewGame() {
   }
 
   function calculateWin(playerCard, computerCard) {
-    if (myDeckNum === 27 || computerDeckNum === 27) {
+    if (myDeckNum === 39 || computerDeckNum === 39) {
       console.log("hit win condition");
       setIsGameOver(true);
       resetGame();
@@ -125,14 +125,11 @@ export default function NewGame() {
       `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
     );
   }
-function resetGame() {
-    setMyDeckNum(26)
-    setComputerDeckNum(26)
-
-}
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  function resetGame() {
+    setMyDeckNum(26);
+    setComputerDeckNum(26);
   }
+
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(
@@ -147,7 +144,7 @@ function resetGame() {
   useEffect(() => {
     const fetchData = async () => {
       if (DECK_ID) {
-        await dealCards("computer")
+        await dealCards("computer");
         await dealCards("player");
       }
     };
@@ -157,7 +154,7 @@ function resetGame() {
   return (
     <div>
       {isGameOver ? (
-        <EndGame setIsGameOver={setIsGameOver}/>
+        <EndGame setIsGameOver={setIsGameOver} numBattles={numBattles} />
       ) : (
         <div>
           <Image src={compImgURL} />
