@@ -50,11 +50,10 @@ export default function NewGame() {
         tempDeck.push(item.code);
       });
       let compCardString = tempDeck.join(",");
-      
      await fetch(
         `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
       );
-      await sleep(3000);
+    
       return;
     } catch (error) {
       console.error(error.message);
@@ -89,6 +88,7 @@ export default function NewGame() {
     if (myDeckNum === 27 || computerDeckNum === 27) {
       console.log("hit win condition");
       setIsGameOver(true);
+      resetGame();
     }
     if (
       translation.indexOf(playerCard.value) >
@@ -125,7 +125,11 @@ export default function NewGame() {
       `https://www.deckofcardsapi.com/api/deck/${DECK_ID}/pile/${player}/add/?cards=${compCardString}`
     );
   }
+function resetGame() {
+    setMyDeckNum(26)
+    setComputerDeckNum(26)
 
+}
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -143,7 +147,8 @@ export default function NewGame() {
   useEffect(() => {
     const fetchData = async () => {
       if (DECK_ID) {
-        await Promise.all([dealCards("computer"), dealCards("player")]);
+        await dealCards("computer")
+        await dealCards("player");
       }
     };
     fetchData();
@@ -152,7 +157,7 @@ export default function NewGame() {
   return (
     <div>
       {isGameOver ? (
-        <EndGame />
+        <EndGame setIsGameOver={setIsGameOver}/>
       ) : (
         <div>
           <Image src={compImgURL} />
